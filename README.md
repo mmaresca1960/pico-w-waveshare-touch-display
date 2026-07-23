@@ -16,6 +16,11 @@ XIAO ESP32-S3**. Its configuration is in
 enables its 8 MB octal PSRAM and uses the native USB Serial/JTAG logger so the
 UART pins remain available to the project.
 
+A minimal **XIAO ESP32-C3 preview** is available in
+[`door-control-xiao-esp32c3-preview.yaml`](door-control-xiao-esp32c3-preview.yaml).
+It removes the PIR, mmWave sensor, date/time, pages, and periodic display
+refreshes. The full portrait display is split between two touch buttons.
+
 The home screen shows the date and time and provides two large touch controls:
 
 - **Open Door** runs the Home Assistant `script.open_door` action.
@@ -76,6 +81,22 @@ Hardware documentation and interface setup instructions are available on the
 | Display DC | D1 | GPIO2 |
 | Display backlight | D6 | GPIO43 |
 | mmWave sensor | D7 | GPIO44 |
+
+### Seeed Studio XIAO ESP32-C3 preview
+
+| Function | XIAO pin | ESP32-C3 GPIO |
+| --- | --- | --- |
+| I²C SDA | D4 | GPIO6 |
+| I²C SCL | D5 | GPIO7 |
+| Touch interrupt | D6 | GPIO21 |
+| Display CS | D2 | GPIO4 |
+| SPI clock | D8 | GPIO8 |
+| SPI MOSI | D10 | GPIO10 |
+| SPI MISO | D9 | GPIO9 |
+| Display reset | D0 | GPIO2 |
+| Display DC | D3 | GPIO5 |
+| Display backlight | D7 | GPIO20 |
+| Reserved for future PIR wake | D1 | GPIO3 |
 
 Verify these connections against your particular display board before applying
 power.
