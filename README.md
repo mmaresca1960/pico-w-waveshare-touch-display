@@ -4,6 +4,12 @@ ESPHome configuration for a Raspberry Pi Pico W with a portrait 240 × 320
 Waveshare-style ST7789V display, CST816 capacitive touchscreen, and a
 GPIO-connected mmWave presence sensor.
 
+An optimized configuration for the **Seeed Studio XIAO ESP32-C6** is also
+available in
+[`door-control-xiao-esp32c6.yaml`](door-control-xiao-esp32c6.yaml). It uses a
+40 MHz display SPI rate and a five-second scheduled refresh to keep touch
+handling responsive.
+
 The home screen shows the date and time and provides two large touch controls:
 
 - **Open Door** runs the Home Assistant `script.open_door` action.
@@ -16,6 +22,8 @@ Hardware documentation and interface setup instructions are available on the
 [Waveshare 2inch Capacitive Touch LCD wiki](https://www.waveshare.com/wiki/2inch_Capacitive_Touch_LCD#Enable_SPI_and_I2C_Interfaces).
 
 ## Hardware connections
+
+### Raspberry Pi Pico W
 
 | Function | Pico W pin |
 | --- | --- |
@@ -30,6 +38,22 @@ Hardware documentation and interface setup instructions are available on the
 | Display DC | GPIO14 |
 | Display backlight | GPIO15 |
 | mmWave sensor | GPIO26 |
+
+### Seeed Studio XIAO ESP32-C6
+
+| Function | XIAO pin | ESP32-C6 GPIO |
+| --- | --- | --- |
+| I²C SDA | D4 | GPIO22 |
+| I²C SCL | D5 | GPIO23 |
+| Touch interrupt | D3 | GPIO21 |
+| Display CS | D2 | GPIO2 |
+| SPI clock | D8 | GPIO19 |
+| SPI MOSI | D10 | GPIO18 |
+| SPI MISO | D9 | GPIO20 |
+| Display reset | D0 | GPIO0 |
+| Display DC | D1 | GPIO1 |
+| Display backlight | D6 | GPIO16 |
+| mmWave sensor | D7 | GPIO17 |
 
 Verify these connections against your particular display board before applying
 power.
@@ -48,16 +72,28 @@ power.
    - `script.open_door`
    - `script.leave_house`
 
-7. Validate the configuration:
+7. Validate the configuration for your board:
 
    ```sh
    esphome config pico-display.yaml
    ```
 
-8. Connect the Pico W by USB for the first installation:
+   For the XIAO ESP32-C6, use:
+
+   ```sh
+   esphome config door-control-xiao-esp32c6.yaml
+   ```
+
+8. Connect the controller by USB for the first installation:
 
    ```sh
    esphome run pico-display.yaml
+   ```
+
+   For the XIAO ESP32-C6, use:
+
+   ```sh
+   esphome run door-control-xiao-esp32c6.yaml
    ```
 
 Later updates can use ESPHome OTA.
@@ -70,6 +106,8 @@ Later updates can use ESPHome OTA.
 - The Wi-Fi strength display uses a 15-sample moving average.
 - Touch buttons are scoped to `home_page`, preventing them from firing when a
   future screen is visible.
+- If the XIAO display shows corruption with long jumper wires, reduce
+  `data_rate` from `40MHz` to `20MHz`.
 
 ## License
 

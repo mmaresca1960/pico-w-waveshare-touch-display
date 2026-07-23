@@ -1,0 +1,209 @@
+esphome:
+  name: door-control
+  friendly_name: Door Control
+  min_version: 2025.12.0
+  name_add_mac_suffix: false
+
+esp32:
+  board: seeed_xiao_esp32c6
+  variant: esp32c6
+  framework:
+    type: esp-idf
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+i2c:
+  - id: i2c_bus0
+    sda: GPIO22
+    scl: GPIO23
+    frequency: 400kHz
+    scan: true
+
+spi:
+  - id: spi_bus0
+    clk_pin: GPIO19
+    mosi_pin: GPIO18
+    miso_pin: GPIO20
+
+binary_sensor:
+  - platform: status
+    name: "Status"
+    entity_category: diagnostic
+
+  - platform: gpio
+    pin:
+      number: GPIO17
+      mode:
+        input: true
+        pullup: true
+    name: "mmWave Sensor"
+    id: mmwave
+
+  - platform: touchscreen
+    id: open_door_button
+    touchscreen_id: my_touch
+    x_min: 15
+    x_max: 225
+    y_min: 90
+    y_max: 155
+    page_id: home_page
+    internal: true
+    on_press:
+      - logger.log:
+          level: INFO
+          tag: touch_action
+          format: "Open Door pressed; requesting script.open_door"
+      - homeassistant.action:
+          action: script.open_door
+
+  - platform: touchscreen
+    id: leave_house_button
+    touchscreen_id: my_touch
+    x_min: 15
+    x_max: 225
+    y_min: 170
+    y_max: 235
+    page_id: home_page
+    internal: true
+    on_press:
+      - logger.log:
+          level: INFO
+          tag: touch_action
+          format: "Leave House pressed; requesting script.leave_house"
+      - homeassistant.action:
+          action: script.leave_house
+
+sensor:
+  - platform: uptime
+    name: "Uptime Sensor"
+    id: uptime_sensor
+    entity_category: diagnostic
+    internal: true
+
+  - platform: wifi_signal
+    name: "WiFi Signal dB"
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: diagnostic
+
+  - platform: wifi_signal
+    name: "WiFi Strength"
+    id: wifi_strength
+    filters:
+      - sliding_window_moving_average:
+          window_size: 15
+          send_every: 15
+
+  - platform: copy
+    source_id: wifi_signal_db
+    name: "WiFi Signal"
+    filters:
+      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "%"
+    entity_category: diagnostic
+
+time:
+  - platform: homeassistant
+    id: esptime
+
+font:
+  - file: "fonts/ocraext.ttf"
+    id: font1
+    size: 14
+  - file: "fonts/ocraext.ttf"
+    id: fontocra
+    size: 32
+  - file: "fonts/ocraext.ttf"
+    id: font_button
+    size: 24
+  - file: "fonts/materialdesignicons-webfont.ttf"
+    id: mdi_42
+    size: 42
+    bpp: 4
+    glyphs:
+      - "\U000F0335"
+      - "\U000F0336"
+
+touchscreen:
+  - platform: cst816
+    id: my_touch
+    display: my_display
+    skip_probe: true
+    interrupt_pin:
+      number: GPIO21
+      mode: INPUT_PULLUP
+    on_touch:
+      - lambda: |-
+          ESP_LOGI("touch", "Touch registered at X=%d, Y=%d", touch.x, touch.y);
+
+display:
+  - platform: st7789v
+    id: my_display
+    model: Custom
+    width: 240
+    height: 320
+    offset_width: 0
+    offset_height: 0
+    cs_pin: GPIO2
+    dc_pin: GPIO1
+    reset_pin: GPIO0
+    backlight_pin: GPIO16
+    data_rate: 40MHz
+    eightbitcolor: true
+    rotation: 0
+    update_interval: 5s
+    show_test_card: false
+    pages:
+      - id: home_page
+        lambda: |-
+          const auto background = Color(8, 12, 20);
+          const auto primary = Color(37, 99, 235);
+          const auto primary_pressed = Color(96, 165, 250);
+          const auto secondary = Color(5, 150, 105);
+          const auto secondary_pressed = Color(52, 211, 153);
+          const auto text = Color(255, 255, 255);
+          const auto muted = Color(148, 163, 184);
+
+          it.fill(background);
+
+          auto now = id(esptime).now();
+          if (now.is_valid()) {
+            it.strftime(120, 8, id(font1), muted, TextAlign::TOP_CENTER,
+                        "%a, %d %b %Y", now);
+            it.strftime(120, 28, id(fontocra), text, TextAlign::TOP_CENTER,
+                        "%H:%M", now);
+          } else {
+            it.print(120, 18, id(font1), muted, TextAlign::TOP_CENTER,
+                     "Waiting for Home Assistant time");
+          }
+
+          it.line(15, 72, 225, 72, Color(51, 65, 85));
+
+          const auto open_color = id(open_door_button).state
+                                      ? primary_pressed
+                                      : primary;
+          it.filled_rectangle(15, 90, 210, 65, open_color);
+          it.rectangle(15, 90, 210, 65, Color(147, 197, 253));
+          it.print(120, 122, id(font_button), text, TextAlign::CENTER,
+                   "Open Door");
+
+          const auto leave_color = id(leave_house_button).state
+                                       ? secondary_pressed
+                                       : secondary;
+          it.filled_rectangle(15, 170, 210, 65, leave_color);
+          it.rectangle(15, 170, 210, 65, Color(110, 231, 183));
+          it.print(120, 202, id(font_button), text, TextAlign::CENTER,
+                   "Leave House");
+
+          it.line(15, 260, 225, 260, Color(51, 65, 85));
+          it.print(120, 282, id(font1), muted, TextAlign::TOP_CENTER,
+                   "HOME  1/1");
