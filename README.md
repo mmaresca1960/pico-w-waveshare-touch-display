@@ -10,6 +10,12 @@ available in
 40 MHz display SPI rate and a five-second scheduled refresh to keep touch
 handling responsive.
 
+The recommended target for the future LVGL interface is the **Seeed Studio
+XIAO ESP32-S3**. Its configuration is in
+[`door-control-xiao-esp32s3.yaml`](door-control-xiao-esp32s3.yaml). This variant
+enables its 8 MB octal PSRAM and uses the native USB Serial/JTAG logger so the
+UART pins remain available to the project.
+
 The home screen shows the date and time and provides two large touch controls:
 
 - **Open Door** runs the Home Assistant `script.open_door` action.
@@ -55,6 +61,22 @@ Hardware documentation and interface setup instructions are available on the
 | Display backlight | D6 | GPIO16 |
 | mmWave sensor | D7 | GPIO17 |
 
+### Seeed Studio XIAO ESP32-S3
+
+| Function | XIAO pin | ESP32-S3 GPIO |
+| --- | --- | --- |
+| I²C SDA | D4 | GPIO5 |
+| I²C SCL | D5 | GPIO6 |
+| Touch interrupt | D3 | GPIO4 |
+| Display CS | D2 | GPIO3 |
+| SPI clock | D8 | GPIO7 |
+| SPI MOSI | D10 | GPIO9 |
+| SPI MISO | D9 | GPIO8 |
+| Display reset | D0 | GPIO1 |
+| Display DC | D1 | GPIO2 |
+| Display backlight | D6 | GPIO43 |
+| mmWave sensor | D7 | GPIO44 |
+
 Verify these connections against your particular display board before applying
 power.
 
@@ -84,6 +106,12 @@ power.
    esphome config door-control-xiao-esp32c6.yaml
    ```
 
+   For the XIAO ESP32-S3, use:
+
+   ```sh
+   esphome config door-control-xiao-esp32s3.yaml
+   ```
+
 8. Connect the controller by USB for the first installation:
 
    ```sh
@@ -94,6 +122,12 @@ power.
 
    ```sh
    esphome run door-control-xiao-esp32c6.yaml
+   ```
+
+   For the XIAO ESP32-S3, use:
+
+   ```sh
+   esphome run door-control-xiao-esp32s3.yaml
    ```
 
 Later updates can use ESPHome OTA.
@@ -108,6 +142,9 @@ Later updates can use ESPHome OTA.
   future screen is visible.
 - If the XIAO display shows corruption with long jumper wires, reduce
   `data_rate` from `40MHz` to `20MHz`.
+- GPIO3 (`D2`) is a strapping pin on the ESP32-S3. It is used only as the
+  display chip-select output here; do not add an external pull-up or pull-down
+  to that signal.
 
 ## License
 
