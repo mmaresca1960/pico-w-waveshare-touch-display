@@ -7,6 +7,9 @@ presence sensor.
 The display shows motion state, Wi-Fi strength, and uptime. Touch events are
 written to the ESPHome log.
 
+Hardware documentation and interface setup instructions are available on the
+[Waveshare 2inch Capacitive Touch LCD wiki](https://www.waveshare.com/wiki/2inch_Capacitive_Touch_LCD#Enable_SPI_and_I2C_Interfaces).
+
 ## Hardware connections
 
 | Function | Pico W pin |
