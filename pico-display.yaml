@@ -56,6 +56,10 @@ binary_sensor:
     internal: true
     on_press:
       - component.update: my_display
+      - logger.log:
+          level: INFO
+          tag: touch_action
+          format: "Open Door pressed; requesting script.open_door"
       - homeassistant.action:
           action: script.open_door
     on_release:
@@ -72,6 +76,10 @@ binary_sensor:
     internal: true
     on_press:
       - component.update: my_display
+      - logger.log:
+          level: INFO
+          tag: touch_action
+          format: "Leave House pressed; requesting script.leave_house"
       - homeassistant.action:
           action: script.leave_house
     on_release:
