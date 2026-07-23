@@ -55,15 +55,12 @@ binary_sensor:
     page_id: home_page
     internal: true
     on_press:
-      - component.update: my_display
       - logger.log:
           level: INFO
           tag: touch_action
           format: "Open Door pressed; requesting script.open_door"
       - homeassistant.action:
           action: script.open_door
-    on_release:
-      - component.update: my_display
 
   - platform: touchscreen
     id: leave_house_button
@@ -75,15 +72,12 @@ binary_sensor:
     page_id: home_page
     internal: true
     on_press:
-      - component.update: my_display
       - logger.log:
           level: INFO
           tag: touch_action
           format: "Leave House pressed; requesting script.leave_house"
       - homeassistant.action:
           action: script.leave_house
-    on_release:
-      - component.update: my_display
 
 sensor:
   - platform: uptime
