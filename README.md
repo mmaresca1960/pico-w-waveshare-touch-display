@@ -1,11 +1,16 @@
 # Pico W Waveshare Touch Display
 
-ESPHome configuration for a Raspberry Pi Pico W with a 240 × 320 Waveshare-style
-ST7789V display, CST816 capacitive touchscreen, and a GPIO-connected mmWave
-presence sensor.
+ESPHome configuration for a Raspberry Pi Pico W with a portrait 240 × 320
+Waveshare-style ST7789V display, CST816 capacitive touchscreen, and a
+GPIO-connected mmWave presence sensor.
 
-The display shows motion state, Wi-Fi strength, and uptime. Touch events are
-written to the ESPHome log.
+The home screen shows the date and time and provides two large touch controls:
+
+- **Open Door** runs the Home Assistant `script.open_door` action.
+- **Leave House** runs the Home Assistant `script.leave_house` action.
+
+The display configuration uses a named `home_page`, and the lower navigation
+area is intentionally reserved so additional screens can be added later.
 
 Hardware documentation and interface setup instructions are available on the
 [Waveshare 2inch Capacitive Touch LCD wiki](https://www.waveshare.com/wiki/2inch_Capacitive_Touch_LCD#Enable_SPI_and_I2C_Interfaces).
@@ -35,13 +40,21 @@ power.
 2. Clone this repository.
 3. Copy `secrets.example.yaml` to `secrets.yaml` and enter your Wi-Fi details.
 4. Add the two required files described in [`fonts/README.md`](fonts/README.md).
-5. Validate the configuration:
+5. In Home Assistant, open **Settings → Devices & services → ESPHome**, select
+   this device, choose **Configure**, and enable **Allow the device to perform
+   Home Assistant actions**.
+6. Confirm that these Home Assistant entities exist:
+
+   - `script.open_door`
+   - `script.leave_house`
+
+7. Validate the configuration:
 
    ```sh
    esphome config pico-display.yaml
    ```
 
-6. Connect the Pico W by USB for the first installation:
+8. Connect the Pico W by USB for the first installation:
 
    ```sh
    esphome run pico-display.yaml
@@ -55,6 +68,8 @@ Later updates can use ESPHome OTA.
 - The mmWave input uses GPIO26 with its internal pull-up enabled.
 - The touchscreen probe is skipped to match the tested hardware setup.
 - The Wi-Fi strength display uses a 15-sample moving average.
+- Touch buttons are scoped to `home_page`, preventing them from firing when a
+  future screen is visible.
 
 ## License
 

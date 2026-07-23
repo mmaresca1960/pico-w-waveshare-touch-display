@@ -45,6 +45,38 @@ binary_sensor:
     name: "mmWave Sensor"
     id: mmwave
 
+  - platform: touchscreen
+    id: open_door_button
+    touchscreen_id: my_touch
+    x_min: 15
+    x_max: 225
+    y_min: 90
+    y_max: 155
+    page_id: home_page
+    internal: true
+    on_press:
+      - component.update: my_display
+      - homeassistant.action:
+          action: script.open_door
+    on_release:
+      - component.update: my_display
+
+  - platform: touchscreen
+    id: leave_house_button
+    touchscreen_id: my_touch
+    x_min: 15
+    x_max: 225
+    y_min: 170
+    y_max: 235
+    page_id: home_page
+    internal: true
+    on_press:
+      - component.update: my_display
+      - homeassistant.action:
+          action: script.leave_house
+    on_release:
+      - component.update: my_display
+
 sensor:
   - platform: uptime
     name: "Uptime Sensor"
@@ -85,6 +117,9 @@ font:
   - file: "fonts/ocraext.ttf"
     id: fontocra
     size: 32
+  - file: "fonts/ocraext.ttf"
+    id: font_button
+    size: 24
   - file: "fonts/materialdesignicons-webfont.ttf"
     id: mdi_42
     size: 42
@@ -120,17 +155,48 @@ display:
     rotation: 0
     update_interval: 1s
     show_test_card: false
-    lambda: |-
-      it.fill(Color(0, 0, 0));
+    pages:
+      - id: home_page
+        lambda: |-
+          const auto background = Color(8, 12, 20);
+          const auto primary = Color(37, 99, 235);
+          const auto primary_pressed = Color(96, 165, 250);
+          const auto secondary = Color(5, 150, 105);
+          const auto secondary_pressed = Color(52, 211, 153);
+          const auto text = Color(255, 255, 255);
+          const auto muted = Color(148, 163, 184);
 
-      it.print(10, 10, id(font1), Color(255, 255, 255), "PICO MONITOR");
-      it.line(10, 30, 230, 30, Color(0, 0, 255));
+          it.fill(background);
 
-      if (id(mmwave).state) {
-        it.print(10, 50, id(fontocra), Color(255, 0, 0), "MOTION");
-      } else {
-        it.print(10, 50, id(fontocra), Color(0, 255, 0), "CLEAR");
-      }
+          auto now = id(esptime).now();
+          if (now.is_valid()) {
+            it.strftime(120, 8, id(font1), muted, TextAlign::TOP_CENTER,
+                        "%a, %d %b %Y", now);
+            it.strftime(120, 28, id(fontocra), text, TextAlign::TOP_CENTER,
+                        "%H:%M", now);
+          } else {
+            it.print(120, 18, id(font1), muted, TextAlign::TOP_CENTER,
+                     "Waiting for Home Assistant time");
+          }
 
-      it.printf(10, 120, id(font1), Color(255, 255, 255), "WiFi: %.0f%%", id(wifi_strength).state);
-      it.printf(10, 150, id(font1), Color(255, 255, 255), "Uptime: %.0fs", id(uptime_sensor).state);
+          it.line(15, 72, 225, 72, Color(51, 65, 85));
+
+          const auto open_color = id(open_door_button).state
+                                      ? primary_pressed
+                                      : primary;
+          it.filled_rectangle(15, 90, 210, 65, open_color);
+          it.rectangle(15, 90, 210, 65, Color(147, 197, 253));
+          it.print(120, 122, id(font_button), text, TextAlign::CENTER,
+                   "Open Door");
+
+          const auto leave_color = id(leave_house_button).state
+                                       ? secondary_pressed
+                                       : secondary;
+          it.filled_rectangle(15, 170, 210, 65, leave_color);
+          it.rectangle(15, 170, 210, 65, Color(110, 231, 183));
+          it.print(120, 202, id(font_button), text, TextAlign::CENTER,
+                   "Leave House");
+
+          it.line(15, 260, 225, 260, Color(51, 65, 85));
+          it.print(120, 282, id(font1), muted, TextAlign::TOP_CENTER,
+                   "HOME  1/1");
