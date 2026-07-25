@@ -1,13 +1,22 @@
 esphome:
-  name: esphome-web-0d05ec
-  friendly_name: Pico Display
-  min_version: 2025.11.0
+  name: door-control
+  friendly_name: Door Control
+  min_version: 2026.7.2
   name_add_mac_suffix: false
 
-rp2040:
-  board: rpipicow
+esp32:
+  board: seeed_xiao_esp32s3
+  variant: esp32s3
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+
+psram:
+  mode: octal
+  speed: 80MHz
 
 logger:
+  hardware_uart: USB_SERIAL_JTAG
 
 api:
 
@@ -20,16 +29,16 @@ wifi:
 
 i2c:
   - id: i2c_bus0
-    sda: GPIO6
-    scl: GPIO7
-    frequency: 100kHz
+    sda: GPIO5
+    scl: GPIO6
+    frequency: 400kHz
     scan: true
 
 spi:
   - id: spi_bus0
-    clk_pin: GPIO10
-    mosi_pin: GPIO11
-    miso_pin: GPIO12
+    clk_pin: GPIO7
+    mosi_pin: GPIO9
+    miso_pin: GPIO8
 
 binary_sensor:
   - platform: status
@@ -38,7 +47,7 @@ binary_sensor:
 
   - platform: gpio
     pin:
-      number: GPIO26
+      number: GPIO44
       mode:
         input: true
         pullup: true
@@ -136,7 +145,7 @@ touchscreen:
     display: my_display
     skip_probe: true
     interrupt_pin:
-      number: GPIO8
+      number: GPIO4
       mode: INPUT_PULLUP
     on_touch:
       - lambda: |-
@@ -150,12 +159,14 @@ display:
     height: 320
     offset_width: 0
     offset_height: 0
-    cs_pin: GPIO9
-    dc_pin: GPIO14
-    reset_pin: GPIO13
-    backlight_pin: GPIO15
+    cs_pin: GPIO3
+    dc_pin: GPIO2
+    reset_pin: GPIO1
+    backlight_pin: GPIO43
+    data_rate: 40MHz
+    eightbitcolor: true
     rotation: 0
-    update_interval: 1s
+    update_interval: 5s
     show_test_card: false
     pages:
       - id: home_page

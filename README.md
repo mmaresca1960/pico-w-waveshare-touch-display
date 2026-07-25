@@ -1,13 +1,37 @@
 # Pico W Waveshare Touch Display
 
-ESPHome configuration for a Raspberry Pi Pico W with a 240 × 320 Waveshare-style
-ST7789V display, CST816 capacitive touchscreen, and a GPIO-connected mmWave
-presence sensor.
+ESPHome configuration for a Raspberry Pi Pico W with a portrait 240 × 320
+Waveshare-style ST7789V display, CST816 capacitive touchscreen, and a
+GPIO-connected mmWave presence sensor.
 
-The display shows motion state, Wi-Fi strength, and uptime. Touch events are
-written to the ESPHome log.
+A PIR-wake configuration for the **Seeed Studio XIAO ESP32-C6** is available
+in [`door-control-xiao-esp32c6-pir.yaml`](door-control-xiao-esp32c6-pir.yaml).
+It uses the full portrait screen for two stacked buttons and enters deep sleep
+after motion clears.
+
+The recommended target for the future LVGL interface is the **Seeed Studio
+XIAO ESP32-S3**. Its configuration is in
+[`door-control-xiao-esp32s3.yaml`](door-control-xiao-esp32s3.yaml). This variant
+enables its 8 MB octal PSRAM and uses the native USB Serial/JTAG logger so the
+UART pins remain available to the project.
+
+A finalized **XIAO ESP32-C3 PIR configuration** is available in
+[`door-control-xiao-esp32c3-pir.yaml`](door-control-xiao-esp32c3-pir.yaml).
+It wakes on an active-high PIR signal, displays disabled gray controls until
+Home Assistant connects, and then enables the blue **Open Door** and red
+**Leave Home** buttons.
+
+The battery-oriented C3/C6 screen provides two large touch controls:
+
+- **Open Door** runs the Home Assistant `script.open_door` action.
+- **Leave Home** runs the Home Assistant `script.leave_house` action.
+
+Hardware documentation and interface setup instructions are available on the
+[Waveshare 2inch Capacitive Touch LCD wiki](https://www.waveshare.com/wiki/2inch_Capacitive_Touch_LCD#Enable_SPI_and_I2C_Interfaces).
 
 ## Hardware connections
+
+### Raspberry Pi Pico W
 
 | Function | Pico W pin |
 | --- | --- |
@@ -23,25 +47,135 @@ written to the ESPHome log.
 | Display backlight | GPIO15 |
 | mmWave sensor | GPIO26 |
 
+### Legacy always-on Seeed Studio XIAO ESP32-C6
+
+| Function | XIAO pin | ESP32-C6 GPIO |
+| --- | --- | --- |
+| I²C SDA | D4 | GPIO22 |
+| I²C SCL | D5 | GPIO23 |
+| Touch interrupt | D3 | GPIO21 |
+| Display CS | D2 | GPIO2 |
+| SPI clock | D8 | GPIO19 |
+| SPI MOSI | D10 | GPIO18 |
+| SPI MISO | D9 | GPIO20 |
+| Display reset | D0 | GPIO0 |
+| Display DC | D1 | GPIO1 |
+| Display backlight | D6 | GPIO16 |
+| mmWave sensor | D7 | GPIO17 |
+
+### Seeed Studio XIAO ESP32-S3
+
+| Function | XIAO pin | ESP32-S3 GPIO |
+| --- | --- | --- |
+| I²C SDA | D4 | GPIO5 |
+| I²C SCL | D5 | GPIO6 |
+| Touch interrupt | D3 | GPIO4 |
+| Display CS | D2 | GPIO3 |
+| SPI clock | D8 | GPIO7 |
+| SPI MOSI | D10 | GPIO9 |
+| SPI MISO | D9 | GPIO8 |
+| Display reset | D0 | GPIO1 |
+| Display DC | D1 | GPIO2 |
+| Display backlight | D6 | GPIO43 |
+| mmWave sensor | D7 | GPIO44 |
+
+### Seeed Studio XIAO ESP32-C3 with PIR wake
+
+| Function | XIAO pin | ESP32-C3 GPIO |
+| --- | --- | --- |
+| I²C SDA | D4 | GPIO6 |
+| I²C SCL | D5 | GPIO7 |
+| Touch interrupt | D6 | GPIO21 |
+| Display CS | D2 | GPIO4 |
+| SPI clock | D8 | GPIO8 |
+| SPI MOSI | D10 | GPIO10 |
+| SPI MISO | D9 | GPIO9 |
+| Display reset | D0 | GPIO2 |
+| Display DC | D3 | GPIO5 |
+| Display backlight | D7 | GPIO20 |
+| PIR signal / deep-sleep wake | D1 | GPIO3 |
+
+### Seeed Studio XIAO ESP32-C6 with PIR wake
+
+| Function | XIAO pin | ESP32-C6 GPIO |
+| --- | --- | --- |
+| PIR signal / deep-sleep wake | D0 | GPIO0 |
+| Display backlight | D1 | GPIO1 |
+| Display CS | D2 | GPIO2 |
+| Touch interrupt | D3 | GPIO21 |
+| I²C SDA | D4 | GPIO22 |
+| I²C SCL | D5 | GPIO23 |
+| Display DC | D6 | GPIO16 |
+| Display reset | D7 | GPIO17 |
+| SPI clock | D8 | GPIO19 |
+| SPI MISO | D9 | GPIO20 |
+| SPI MOSI | D10 | GPIO18 |
+
 Verify these connections against your particular display board before applying
 power.
 
 ## Setup
 
-1. Install ESPHome 2025.11.0 or newer.
+1. Install ESPHome 2026.7.2 or newer for the finalized C3/C6 PIR builds.
 2. Clone this repository.
 3. Copy `secrets.example.yaml` to `secrets.yaml` and enter your Wi-Fi details.
 4. Add the two required files described in [`fonts/README.md`](fonts/README.md).
-5. Validate the configuration:
+5. In Home Assistant, open **Settings → Devices & services → ESPHome**, select
+   this device, choose **Configure**, and enable **Allow the device to perform
+   Home Assistant actions**.
+6. Confirm that these Home Assistant entities exist:
+
+   - `script.open_door`
+   - `script.leave_house`
+
+7. Validate the configuration for your board:
 
    ```sh
    esphome config pico-display.yaml
    ```
 
-6. Connect the Pico W by USB for the first installation:
+   For the XIAO ESP32-C6, use:
+
+   ```sh
+   esphome config door-control-xiao-esp32c6.yaml
+   ```
+
+   For the XIAO ESP32-S3, use:
+
+   ```sh
+   esphome config door-control-xiao-esp32s3.yaml
+   ```
+
+   For the PIR-wake XIAO ESP32-C3 or C6, use:
+
+   ```sh
+   esphome config door-control-xiao-esp32c3-pir.yaml
+   esphome config door-control-xiao-esp32c6-pir.yaml
+   ```
+
+8. Connect the controller by USB for the first installation:
 
    ```sh
    esphome run pico-display.yaml
+   ```
+
+   For the XIAO ESP32-C6, use:
+
+   ```sh
+   esphome run door-control-xiao-esp32c6.yaml
+   ```
+
+   For the XIAO ESP32-S3, use:
+
+   ```sh
+   esphome run door-control-xiao-esp32s3.yaml
+   ```
+
+   For the PIR-wake XIAO ESP32-C3 or C6, use:
+
+   ```sh
+   esphome run door-control-xiao-esp32c3-pir.yaml
+   esphome run door-control-xiao-esp32c6-pir.yaml
    ```
 
 Later updates can use ESPHome OTA.
@@ -52,6 +186,14 @@ Later updates can use ESPHome OTA.
 - The mmWave input uses GPIO26 with its internal pull-up enabled.
 - The touchscreen probe is skipped to match the tested hardware setup.
 - The Wi-Fi strength display uses a 15-sample moving average.
+- If the XIAO display shows corruption with long jumper wires, reduce
+  `data_rate` from `40MHz` to `20MHz`.
+- The C3 build disables ESP-IDF's automatic deep-sleep GPIO resistors because
+  they loaded the tested PIR output down to approximately 1.8 V.
+- The PIR configurations assume an active-high 3.3 V output.
+- GPIO3 (`D2`) is a strapping pin on the ESP32-S3. It is used only as the
+  display chip-select output here; do not add an external pull-up or pull-down
+  to that signal.
 
 ## License
 
